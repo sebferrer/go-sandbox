@@ -2,7 +2,9 @@ package util
 
 import (
 	"bufio"
+	"errors"
 	"io"
+	"log"
 	"os"
 )
 
@@ -61,3 +63,35 @@ func Copy(inputFile string, outputFile string) {
 /**
 https://stackoverflow.com/questions/1821811/how-to-read-write-from-to-a-file-using-go
 */
+
+func Write(outputFile string, content string, append bool) {
+	var f *os.File
+	var err error
+
+	if append {
+		f, err = os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		f, err = os.Create(outputFile)
+	}
+
+	defer f.Close()
+
+	val := content
+	data := []byte(val)
+
+	_, err2 := f.Write(data)
+
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+}
+
+func FileExists(fileFullPath string) bool {
+	if _, err := os.Stat(fileFullPath); errors.Is(err, os.ErrNotExist) {
+		return false
+	}
+	return true
+}

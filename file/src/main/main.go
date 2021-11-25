@@ -12,6 +12,6 @@ func main() {
 	fmt.Println("Start")
 
 	fmt.Println(util.Read(util.RootDir() + SAMPLE_FILE))
-	// util.Copy(util.RootDir()+SAMPLE_FILE, util.RootDir()+OUTPUT_FILE)
-	// util.Write(util.RootDir()+OUTPUT_FILE, "Hello, World!", true)
+	util.Copy(util.RootDir()+SAMPLE_FILE, util.RootDir()+OUTPUT_FILE)
+	util.Write(util.RootDir()+OUTPUT_FILE, "Hello, World!", true)
 }

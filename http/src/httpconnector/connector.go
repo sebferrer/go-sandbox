@@ -26,7 +26,7 @@ func Post(url string, obj interface{}) []byte {
 	postBody, _ := json.Marshal(obj)
 	responseBody := bytes.NewBuffer(postBody)
 
-	resp, err := http.Post("https://postman-echo.com/post", "application/json", responseBody)
+	resp, err := http.Post(url, "application/json", responseBody)
 
 	if err != nil {
 		log.Fatalf("An Error Occured %v", err)

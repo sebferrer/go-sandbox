@@ -6,7 +6,7 @@ import (
 	"log"
 	"nethttp/src/article"
 	"nethttp/src/httpconnector"
-	"nethttp/src/httpserver"
+	httpserver "nethttp/src/httpserver/gin"
 )
 
 func main() {
@@ -33,7 +33,11 @@ func main() {
 	res := string(body2)
 	log.Printf(res)
 
-	/** SERVE **/
+	/** MUX SERVE **/
+
+	// httpserver.Serve()
+
+	/** GIN GONIC SERVE **/
 
 	httpserver.Serve()
 }

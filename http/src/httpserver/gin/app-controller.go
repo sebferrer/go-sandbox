@@ -18,7 +18,7 @@ func TestGet(c *gin.Context) {
 	qValue, ok := c.Request.URL.Query()["value"]
 	value := qValue[0]
 	if !ok || len(value) < 1 {
-		log.Println("Url Param 'key' is missing")
+		log.Println("Url Param 'value' is missing")
 		return
 	}
 

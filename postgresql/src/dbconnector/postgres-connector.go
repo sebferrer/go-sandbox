@@ -21,41 +21,75 @@ type Article struct {
 	Subarticles string
 }
 
+type SubArticle struct {
+	ID         string
+	Published  string
+	Authors    string
+	Categories string
+	Tags       string
+}
+
 func openConnection() (*sql.DB, error) {
 	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	return sql.Open("postgres", psqlconn)
 }
 
-func GetArticles() {
+func GetSubArticle(id string) SubArticle {
 	db, err := openConnection()
 	CheckError(err)
 	defer db.Close()
 
-	var myArticle Article
-	sql := "SELECT id, authors, subarticles FROM articles"
+	var subArticle SubArticle
+	sql := "select items.id, items.published, items.authors, items.categories, items.tags from articles, jsonb_to_recordset(subarticles) as items(id text, published bool, authors text, categories text, tags text) where items.id = $1"
 
-	err = db.QueryRow(sql).Scan(&myArticle.ID, &myArticle.Authors, &myArticle.Subarticles)
+	err = db.QueryRow(sql, id).Scan(&subArticle.ID, &subArticle.Published, &subArticle.Authors, &subArticle.Categories, &subArticle.Tags)
 	if err != nil {
 		log.Fatal("Failed to execute query: ", err)
 	}
 
-	fmt.Printf("%s\n", myArticle)
+	// fmt.Printf("%s\n", subArticle)
+	return subArticle
 }
 
-func GetArticle(id int) {
+func GetArticles() []Article {
 	db, err := openConnection()
 	CheckError(err)
 	defer db.Close()
 
-	var myArticle Article
-	sql := "SELECT id, authors, subarticles FROM articles WHERE id = $1"
+	var articles []Article
 
-	err = db.QueryRow(sql, "1").Scan(&myArticle.ID, &myArticle.Authors, &myArticle.Subarticles)
+	sql := "SELECT id, authors, subarticles FROM articles"
+
+	rows, err := db.Query(sql)
 	if err != nil {
 		log.Fatal("Failed to execute query: ", err)
 	}
 
-	fmt.Printf("%s\n", myArticle)
+	for rows.Next() {
+		var article Article
+		rows.Scan(&article.ID, &article.Authors, &article.Subarticles)
+		articles = append(articles, article)
+	}
+
+	// fmt.Printf("%s\n", articles)
+	return articles
+}
+
+func GetArticle(id int) Article {
+	db, err := openConnection()
+	CheckError(err)
+	defer db.Close()
+
+	var article Article
+	sql := "SELECT id, authors, subarticles FROM articles WHERE id = $1"
+
+	err = db.QueryRow(sql, id).Scan(&article.ID, &article.Authors, &article.Subarticles)
+	if err != nil {
+		log.Fatal("Failed to execute query: ", err)
+	}
+
+	// fmt.Printf("%s\n", article)
+	return article
 }
 
 func TestDB() {

@@ -11,7 +11,14 @@ func main() {
 
 	psql.TestDB()
 
-	psql.GetArticle(1)
+	// articles := psql.GetArticles()
+	// fmt.Printf("%s\n", articles)
+
+	// article := psql.GetArticle(1)
+	// fmt.Printf("%s\n", article)
+
+	subArticle := psql.GetSubArticle("1")
+	fmt.Printf("%s\n", subArticle)
 
 	httpserver.Serve()
 }

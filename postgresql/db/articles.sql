@@ -77,3 +77,13 @@ from
     jsonb_to_recordset(subarticles) as items(id text, published bool)
 where
     items.id = '2';
+
+
+select
+    items.id, items.published, items.authors, items.categories, items.tags
+from
+    articles,
+    jsonb_to_recordset(subarticles) as items(id text, published bool, authors text, categories text, tags text)
+where
+    items.id = '2';
+    

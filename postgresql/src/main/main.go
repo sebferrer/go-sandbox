@@ -2,14 +2,16 @@ package main
 
 import (
 	"fmt"
-	httpserver "psqlsample/src/httpserver/gin"
 	psql "psqlsample/src/dbconnector"
+	httpserver "psqlsample/src/httpserver/gin"
 )
 
 func main() {
 	fmt.Println("Start")
 
 	psql.TestDB()
+
+	psql.GetArticle(1)
 
 	httpserver.Serve()
 }

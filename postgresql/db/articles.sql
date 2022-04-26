@@ -129,5 +129,27 @@ FROM
     ) i2
 WHERE
     i2.id = i.id
+    AND i.id = 1
     AND json_array_length(i2.subarticles) < json_array_length(i.subarticles :: json);
 
+UPDATE
+    articles i
+SET
+    subarticles = i2.subarticles || '{"id":"5","published":true,"authors":["charlie"],"categories":["category3"],"tags":["dogs"]}' :: jsonb
+FROM
+    (
+        SELECT
+            id,
+            array_to_json(array_agg(elem)) AS subarticles
+        FROM
+            articles i2,
+            json_array_elements(i2.subarticles :: json) elem
+        WHERE
+            elem ->> 'id' <> '5'
+        GROUP BY
+            1
+    ) i2
+WHERE
+    i2.id = i.id
+    AND i.id = 1
+    AND json_array_length(i2.subarticles) < json_array_length(i.subarticles :: json);

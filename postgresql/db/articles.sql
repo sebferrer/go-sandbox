@@ -70,6 +70,13 @@ values
     ]'
     );
 
+SELECT
+    *
+FROM
+    articles
+WHERE
+    id = 1;
+
 select
     items.published
 from
@@ -78,12 +85,49 @@ from
 where
     items.id = '2';
 
-
 select
-    items.id, items.published, items.authors, items.categories, items.tags
+    items.id,
+    items.published,
+    items.authors,
+    items.categories,
+    items.tags
 from
     articles,
-    jsonb_to_recordset(subarticles) as items(id text, published bool, authors text, categories text, tags text)
+    jsonb_to_recordset(subarticles) as items(
+        id text,
+        published bool,
+        authors text,
+        categories text,
+        tags text
+    )
 where
     items.id = '2';
-    
+
+UPDATE
+    articles
+SET
+    subarticles = subarticles || '{"id":"5","published":true,"authors":["charlie"],"categories":["category3"],"tags":["cats"]}' :: jsonb
+WHERE
+    id = 1;
+
+UPDATE
+    articles i
+SET
+    subarticles = i2.subarticles
+FROM
+    (
+        SELECT
+            id,
+            array_to_json(array_agg(elem)) AS subarticles
+        FROM
+            articles i2,
+            json_array_elements(i2.subarticles :: json) elem
+        WHERE
+            elem ->> 'id' <> '5'
+        GROUP BY
+            1
+    ) i2
+WHERE
+    i2.id = i.id
+    AND json_array_length(i2.subarticles) < json_array_length(i.subarticles :: json);
+

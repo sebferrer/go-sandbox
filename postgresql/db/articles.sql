@@ -135,7 +135,7 @@ WHERE
 UPDATE
     articles i
 SET
-    subarticles = i2.subarticles || '{"id":"5","published":true,"authors":["charlie"],"categories":["category3"],"tags":["dogs"]}' :: jsonb
+    subarticles = i2.subarticles :: jsonb || '{"id":"5","published":true,"authors":["charlie"],"categories":["category3"],"tags":["dogs"]}' :: jsonb
 FROM
     (
         SELECT

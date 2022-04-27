@@ -2,6 +2,7 @@ package dbconnector
 
 import (
 	sql "database/sql"
+	"encoding/json"
 	"fmt"
 	_ "github.com/lib/pq"
 	"log"
@@ -34,24 +35,74 @@ func openConnection() (*sql.DB, error) {
 	return sql.Open("postgres", psqlconn)
 }
 
-func GetSubArticle(id string) SubArticle {
+func UpdateSubArticle(id string, subArticleJson []byte) (int, error) {
+	db, err := openConnection()
+	CheckError(err)
+	defer db.Close()
+
+	sql := "UPDATE articles i SET subarticles = i2.subarticles :: jsonb || $2 :: jsonb FROM( SELECT id, array_to_json(array_agg(elem)) AS subarticles FROM articles i2, json_array_elements(i2.subarticles :: json) elem WHERE elem ->> 'id' <> $1 GROUP BY 1) i2 WHERE i2.id = i.id AND i.id = 1 AND json_array_length(i2.subarticles) < json_array_length(i.subarticles :: json) RETURNING $1"
+
+	var subArticleId int
+	err = db.QueryRow(sql, id, subArticleJson).Scan(&subArticleId)
+	if err != nil {
+		log.Fatal("Failed to execute query: ", err)
+	}
+
+	return subArticleId, err
+}
+
+func DeleteSubArticle(id string) (int, error) {
+	db, err := openConnection()
+	CheckError(err)
+	defer db.Close()
+
+	sql := "UPDATE articles i SET subarticles = i2.subarticles FROM( SELECT id, array_to_json(array_agg(elem)) AS subarticles FROM articles i2, json_array_elements(i2.subarticles :: json) elem WHERE elem ->> 'id' <> $1 GROUP BY 1) i2 WHERE i2.id = i.id AND i.id = 1 AND json_array_length(i2.subarticles) < json_array_length(i.subarticles :: json) RETURNING $1"
+
+	var subArticleId int
+	err = db.QueryRow(sql, id).Scan(&subArticleId)
+	if err != nil {
+		log.Fatal("Failed to execute query: ", err)
+	}
+
+	return subArticleId, err
+}
+
+func AddSubArticle(subArticleJson []byte) (int, error) {
 	db, err := openConnection()
 	CheckError(err)
 	defer db.Close()
 
 	var subArticle SubArticle
-	sql := "select items.id, items.published, items.authors, items.categories, items.tags from articles, jsonb_to_recordset(subarticles) as items(id text, published bool, authors text, categories text, tags text) where items.id = $1"
+	json.Unmarshal(subArticleJson, &subArticle)
+
+	sql := "UPDATE articles SET subarticles = subarticles || $1 :: jsonb WHERE id = 1 RETURNING $2"
+
+	var id int
+	err = db.QueryRow(sql, subArticleJson, subArticle.ID).Scan(&id)
+	if err != nil {
+		log.Fatal("Failed to execute query: ", err)
+	}
+
+	return id, err
+}
+
+func GetSubArticle(id string) (SubArticle, error) {
+	db, err := openConnection()
+	CheckError(err)
+	defer db.Close()
+
+	var subArticle SubArticle
+	sql := "SELECT items.id, items.published, items.authors, items.categories, items.tags FROM articles, jsonb_to_recordset(subarticles) AS items(id text, published bool, authors text, categories text, tags text) WHERE items.id = $1"
 
 	err = db.QueryRow(sql, id).Scan(&subArticle.ID, &subArticle.Published, &subArticle.Authors, &subArticle.Categories, &subArticle.Tags)
 	if err != nil {
 		log.Fatal("Failed to execute query: ", err)
 	}
 
-	// fmt.Printf("%s\n", subArticle)
-	return subArticle
+	return subArticle, err
 }
 
-func GetArticles() []Article {
+func GetArticles() ([]Article, error) {
 	db, err := openConnection()
 	CheckError(err)
 	defer db.Close()
@@ -71,11 +122,10 @@ func GetArticles() []Article {
 		articles = append(articles, article)
 	}
 
-	// fmt.Printf("%s\n", articles)
-	return articles
+	return articles, err
 }
 
-func GetArticle(id int) Article {
+func GetArticle(id int) (Article, error) {
 	db, err := openConnection()
 	CheckError(err)
 	defer db.Close()
@@ -88,8 +138,7 @@ func GetArticle(id int) Article {
 		log.Fatal("Failed to execute query: ", err)
 	}
 
-	// fmt.Printf("%s\n", article)
-	return article
+	return article, err
 }
 
 func TestDB() {

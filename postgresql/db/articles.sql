@@ -77,30 +77,30 @@ FROM
 WHERE
     id = 1;
 
-select
+SELECT
     items.published
-from
+FROM
     articles,
-    jsonb_to_recordset(subarticles) as items(id text, published bool)
-where
+    jsonb_to_recordset(subarticles) AS items(id text, published bool)
+WHERE
     items.id = '2';
 
-select
+SELECT
     items.id,
     items.published,
     items.authors,
     items.categories,
     items.tags
-from
+FROM
     articles,
-    jsonb_to_recordset(subarticles) as items(
+    jsonb_to_recordset(subarticles) AS items(
         id text,
         published bool,
         authors text,
         categories text,
         tags text
     )
-where
+WHERE
     items.id = '2';
 
 UPDATE
